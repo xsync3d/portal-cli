@@ -17,24 +17,29 @@ column_dict = {
 }
 
 
+# Everything below this line is bad terrible dumb code
+
 # TODO: create a database interface class and implement "delete column" and "replace row" functions
 
-def y_n_input(question):
+def decisive_input(question="Are you sure you want to save these changes?"):
     tmp_in = input(question + " Y/N: ")
     if tmp_in.lower() == "y" or tmp_in.lower() == "yes":
         conn.commit()
-    else:
+    elif tmp_in.lower() == "n" or tmp_in.lower() == "no":
         conn.rollback()
 
 
-# https://stackoverflow.com/questions/5189997/python-db-api-fetchone-vs-fetchmany-vs-fetchall
 def search_costumer(query, column):
     column = column_dict.get(column)
     print(f"searching {query} by {column}")
-    cursor.execute(f"SELECT * FROM costumers WHERE {column} = {query}")
+    # This will definitely end up in a SQL injection later but it will work for now.
+    try:
+        cursor.execute(f"SELECT * FROM costumers WHERE {column} = {query}")
+    except Exception as e:
+        print(f"Could not search costumer: {e}")
     result = cursor.fetchmany()
     if not result:
-        print("costumer not found")
+        print("Costumer not found")
         return None
     return result
 
@@ -57,7 +62,7 @@ def delete_costumer(query, column):
     if search_costumer(query, column):
         try:
             cursor.execute(f"DELETE FROM costumers WHERE {column}={query}")
-            y_n_input("Are you sure you want to save these changes?")
+            decisive_input()
         except Exception as e:
             print(f"Could not delete costumer: {e}")
     else:
@@ -73,12 +78,17 @@ def main():
     parser.add_argument("--search", "-s", help="searches for costumer profile",
                         dest="search_costumer",
                         nargs="+")
-    parser.add_argument("--create", "-c", help="creates a new costumer profile", dest="create_costumer", nargs="+")
-    parser.add_argument("--delete", "-d", help="deletes costumer profile", dest="delete_costumer", nargs="+")
+    parser.add_argument("--create", "-c",
+                        help="creates a new costumer profile\n"
+                             "pass arguments as: first name, last name, email, address"
+                        , dest="create_costumer", nargs="+")
+    parser.add_argument("--delete", "-d",
+                        help="deletes costumer profile\n"
+                             "pass arguments as: query, column"
+                        , dest="delete_costumer", nargs="+")
 
     args = parser.parse_args()
 
-    delete_costumer(1, 3)
     print(search_costumer(1, 3))
     if args.search_costumer:
         search_costumer(args.query, args.column)
