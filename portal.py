@@ -13,7 +13,7 @@ column_dict = {
     2: "l_name",
     3: "email",
     4: "address",
-    5: "costumer_id"
+    5: "customer_id"
 }
 
 
@@ -29,75 +29,75 @@ def decisive_input(question="Are you sure you want to save these changes?"):
         conn.rollback()
 
 
-def search_costumer(query, column):
+def search_customer(query, column):
     column = column_dict.get(column)
     print(f"searching {query} by {column}")
     # This will definitely end up in a SQL injection later but it will work for now.
     try:
-        cursor.execute(f"SELECT * FROM costumers WHERE {column} = {query}")
+        cursor.execute(f"SELECT * FROM customers WHERE {column} = {query}")
     except Exception as e:
-        print(f"Could not search costumer: {e}")
+        print(f"Could not search customer: {e}")
     result = cursor.fetchmany()
     if not result:
-        print("Costumer not found")
+        print("Customer not found")
         return None
     return result
 
 
-def create_costumer(*args):
+def create_customer(*args):
     f_name = args[0]
     l_name = args[1]
     email = args[2]
     # Everything after element 3 is part of the address
     address = ' '.join(args[3:])
     try:
-        cursor.execute('INSERT INTO costumers(f_name, l_name, email, address) VALUES (?, ?, ?, ?)',
+        cursor.execute('INSERT INTO customers(f_name, l_name, email, address) VALUES (?, ?, ?, ?)',
                        (f_name, l_name, email, address))
     except Exception as e:
-        print(f"Could not create costumer: {e}")
+        print(f"Could not create customer: {e}")
 
 
-def delete_costumer(query, column):
+def delete_customer(query, column):
     column = column_dict.get(column)
-    if search_costumer(query, column):
+    if search_customer(query, column):
         try:
-            cursor.execute(f"DELETE FROM costumers WHERE {column}={query}")
+            cursor.execute(f"DELETE FROM customers WHERE {column}={query}")
             decisive_input()
         except Exception as e:
-            print(f"Could not delete costumer: {e}")
+            print(f"Could not delete customer: {e}")
     else:
-        print("Costumer not found")
+        print("Customer not found")
 
 
 def main():
-    cursor.execute("SELECT * FROM costumers")
+    cursor.execute("SELECT * FROM customers")
 
     parser = ArgumentParser(description='mess with dbs or smt idk',
                             usage="use '%(prog)s --help' for more information",
                             formatter_class=RawTextHelpFormatter)
-    parser.add_argument("--search", "-s", help="searches for costumer profile",
-                        dest="search_costumer",
+    parser.add_argument("--search", "-s", help="searches for customer profile",
+                        dest="search_customer",
                         nargs="+")
     parser.add_argument("--create", "-c",
-                        help="creates a new costumer profile\n"
+                        help="creates a new customer profile\n"
                              "pass arguments as: first name, last name, email, address"
-                        , dest="create_costumer", nargs="+")
+                        , dest="create_customer", nargs="+")
     parser.add_argument("--delete", "-d",
-                        help="deletes costumer profile\n"
+                        help="deletes customer profile\n"
                              "pass arguments as: query, column"
-                        , dest="delete_costumer", nargs="+")
+                        , dest="delete_customer", nargs="+")
 
     args = parser.parse_args()
 
-    print(search_costumer(1, 3))
-    if args.search_costumer:
-        search_costumer(args.query, args.column)
-    if args.create_costumer:
-        create_costumer(*args.create_costumer)
-    if args.delete_costumer:
-        delete_costumer(args.query, args.column)
+    print(search_customer(1, 3))
+    if args.search_customer:
+        search_customer(args.query, args.column)
+    if args.create_customer:
+        create_customer(*args.create_customer)
+    if args.delete_customer:
+        delete_customer(args.query, args.column)
     # This is for debugging purposes
-    cursor.execute("SELECT * FROM costumers")
+    cursor.execute("SELECT * FROM customers")
 
     print(cursor.fetchall())
 
