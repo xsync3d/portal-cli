@@ -13,13 +13,17 @@ cursor = conn.cursor()
 
 # TODO: create a database interface class and implement "delete column" and "replace row" functions
 
-def decisive_input(question="Are you sure you want to save these changes?"):
-    tmp_in = input(question + " Y/N: ")
-    if tmp_in.lower() == "y" or tmp_in.lower() == "yes":
+def query_yes_no(question="Are you sure you want to save these changes?"):
+    reply = input(question + " Y/N : ").lower().strip()
+    if reply[:1] == "y":
         conn.commit()
         return True
     elif reply[:1] == "n":
         conn.rollback()
+        return False
+    else:
+        print("Invalid input...")
+        query_yes_no(question)
 
 
 # TODO: further test this function to see if it actually works
@@ -27,6 +31,7 @@ def search_customer(query, column):
     # possibly better way to do this https://www.techonthenet.com/mysql/and_or.php?
     query = str(query)
     print(f"searching {query} by {column}")
+    # This will definitely end up in a SQL injection later but it will work for now.
     try:
         # possible cleanup: split these statements into individual functions
         if column == "1":
@@ -67,12 +72,17 @@ def delete_customer(query, column):
     exists = search_customer(query, column)
     if exists:
         try:
-            cursor.execute(f"DELETE FROM customers WHERE {column}={query}")
-            decisive_input()
+            cursor.execute("DELETE FROM customers WHERE customer_id = ?", str(exists[0]))
+            query_yes_no()
         except Exception as e:
             print(f"Could not delete customer: {e}")
     else:
         print("Customer not found")
+
+
+def print_all_customers():
+    cursor.execute("SELECT * FROM customers")
+    print(cursor.fetchall())
 
 
 def main():
@@ -86,6 +96,7 @@ def main():
     parser.add_argument("--delete", "-d",
                         help="deletes customer profile\n"
                              "pass arguments as: query, column", nargs="+")
+    parser.add_argument("-pac", help="print all customer profiles", action="store_true", default=True)
 
     args = parser.parse_args()
 
@@ -96,6 +107,8 @@ def main():
         create_customer(*args.create_customer)
     if args.delete:
         delete_customer(args.delete[0], args.delete[1])
+    if args.pac:
+        print_all_customers()
     #  print(cursor.fetchall())
     # This is for debugging purposes
 
