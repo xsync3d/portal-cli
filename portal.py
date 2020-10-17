@@ -1,20 +1,12 @@
+#!/usr/bin/env python3
 import sqlite3
-from argparse import ArgumentParser, RawTextHelpFormatter
+from argparse import ArgumentParser, RawDescriptionHelpFormatter, RawTextHelpFormatter
 
 # Just an experimental program
 
 # Connects to database and creates cursor
 conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
-
-# This dictionary will helps us search by column name
-column_dict = {
-    1: "f_name",
-    2: "l_name",
-    3: "email",
-    4: "address",
-    5: "customer_id"
-}
 
 
 # Everything below this line is bad terrible dumb code
@@ -25,41 +17,55 @@ def decisive_input(question="Are you sure you want to save these changes?"):
     tmp_in = input(question + " Y/N: ")
     if tmp_in.lower() == "y" or tmp_in.lower() == "yes":
         conn.commit()
-    elif tmp_in.lower() == "n" or tmp_in.lower() == "no":
+        return True
+    elif reply[:1] == "n":
         conn.rollback()
 
 
+# TODO: further test this function to see if it actually works
 def search_customer(query, column):
-    column = column_dict.get(column)
+    # possibly better way to do this https://www.techonthenet.com/mysql/and_or.php?
+    query = str(query)
     print(f"searching {query} by {column}")
-    # This will definitely end up in a SQL injection later but it will work for now.
     try:
-        cursor.execute(f"SELECT * FROM customers WHERE {column} = {query}")
+        # possible cleanup: split these statements into individual functions
+        if column == "1":
+            cursor.execute("SELECT * FROM customers WHERE customer_id = ?", query)
+        elif column == "2":
+            cursor.execute("SELECT * FROM customers WHERE f_name = ?", query)
+        elif column == "3":
+            cursor.execute("SELECT * FROM customers WHERE l_name = ?", query)
+        elif column == "4":
+            cursor.execute("SELECT * FROM customers WHERE customer_id = ?", query)
+        elif column == "5":
+            cursor.execute("SELECT * FROM customers WHERE customer_id = ?", query)
     except Exception as e:
-        print(f"Could not search customer: {e}")
-    result = cursor.fetchmany()
-    if not result:
-        print("Customer not found")
-        return None
-    return result
+        print(f"Could not find customer: {e}")
+    else:
+        result = cursor.fetchone()
+        if not result:
+            print("Customer not found")
+            return None
+        else:
+            return result
 
 
 def create_customer(*args):
     f_name = args[0]
     l_name = args[1]
     email = args[2]
-    # Everything after element 3 is part of the address
+    # Everything after index 3 is part of the address
     address = ' '.join(args[3:])
     try:
-        cursor.execute('INSERT INTO customers(f_name, l_name, email, address) VALUES (?, ?, ?, ?)',
+        cursor.execute("INSERT INTO customers(f_name, l_name, email, address) VALUES (?, ?, ?, ?)",
                        (f_name, l_name, email, address))
     except Exception as e:
         print(f"Could not create customer: {e}")
 
 
 def delete_customer(query, column):
-    column = column_dict.get(column)
-    if search_customer(query, column):
+    exists = search_customer(query, column)
+    if exists:
         try:
             cursor.execute(f"DELETE FROM customers WHERE {column}={query}")
             decisive_input()
@@ -70,36 +76,33 @@ def delete_customer(query, column):
 
 
 def main():
-    cursor.execute("SELECT * FROM customers")
-
     parser = ArgumentParser(description='mess with dbs or smt idk',
                             usage="use '%(prog)s --help' for more information",
                             formatter_class=RawTextHelpFormatter)
-    parser.add_argument("--search", "-s", help="searches for customer profile",
-                        dest="search_customer",
-                        nargs="+")
+    parser.add_argument("--search", "-s", help="searches for customer profile", nargs="+")
     parser.add_argument("--create", "-c",
                         help="creates a new customer profile\n"
-                             "pass arguments as: first name, last name, email, address"
-                        , dest="create_customer", nargs="+")
+                             "pass arguments as: first name, last name, email, address", nargs="+")
     parser.add_argument("--delete", "-d",
                         help="deletes customer profile\n"
-                             "pass arguments as: query, column"
-                        , dest="delete_customer", nargs="+")
+                             "pass arguments as: query, column", nargs="+")
 
     args = parser.parse_args()
 
-    print(search_customer(1, 3))
-    if args.search_customer:
-        search_customer(args.query, args.column)
-    if args.create_customer:
+    if args.search:
+        search_customer(args.search[0], args.search[1])
+        print(search_customer(args.search[0], args.search[1]))
+    if args.create:
         create_customer(*args.create_customer)
-    if args.delete_customer:
-        delete_customer(args.query, args.column)
+    if args.delete:
+        delete_customer(args.delete[0], args.delete[1])
+    #  print(cursor.fetchall())
     # This is for debugging purposes
-    cursor.execute("SELECT * FROM customers")
 
-    print(cursor.fetchall())
+
+# cursor.execute("SELECT * FROM customers")
+
+# print(cursor.fetchall())
 
 
 if __name__ == "__main__":
