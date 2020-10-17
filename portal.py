@@ -27,7 +27,7 @@ def query_yes_no(question="Are you sure you want to save these changes?"):
 
 
 # TODO: further test this function to see if it actually works
-def search_customer(query, column):
+def search_customer(column, query):
     # possibly better way to do this https://www.techonthenet.com/mysql/and_or.php?
     query = str(query)
     print(f"searching {query} by {column}")
@@ -41,9 +41,9 @@ def search_customer(query, column):
         elif column == "3":
             cursor.execute("SELECT * FROM customers WHERE l_name = ?", query)
         elif column == "4":
-            cursor.execute("SELECT * FROM customers WHERE customer_id = ?", query)
+            cursor.execute("SELECT * FROM customers WHERE email = ?", query)
         elif column == "5":
-            cursor.execute("SELECT * FROM customers WHERE customer_id = ?", query)
+            cursor.execute("SELECT * FROM customers WHERE address = ?", query)
     except Exception as e:
         print(f"Could not find customer: {e}")
     else:
@@ -95,7 +95,7 @@ def main():
                              "pass arguments as: first name, last name, email, address", nargs="+")
     parser.add_argument("--delete", "-d",
                         help="deletes customer profile\n"
-                             "pass arguments as: query, column", nargs="+")
+                             "pass arguments as: column, query", nargs="+")
     parser.add_argument("-pac", help="print all customer profiles", action="store_true", default=True)
 
     args = parser.parse_args()
