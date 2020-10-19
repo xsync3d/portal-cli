@@ -96,7 +96,7 @@ def main():
     parser.add_argument("--delete", "-d",
                         help="deletes customer profile\n"
                              "pass arguments as: column, query", nargs="+")
-    parser.add_argument("-pac", help="print all customer profiles", action="store_true", default=True)
+    parser.add_argument("-pac", help="print all customer profiles", action="store_true")
 
     args = parser.parse_args()
 
