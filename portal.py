@@ -68,8 +68,8 @@ def create_customer(*args):
         print(f"Could not create customer: {e}")
 
 
-def delete_customer(query, column):
-    exists = search_customer(query, column)
+def delete_customer(column, query):
+    exists = search_customer(column, query)
     if exists:
         try:
             cursor.execute("DELETE FROM customers WHERE customer_id = ?", str(exists[0]))
@@ -89,7 +89,9 @@ def main():
     parser = ArgumentParser(description='mess with dbs or smt idk',
                             usage="use '%(prog)s --help' for more information",
                             formatter_class=RawTextHelpFormatter)
-    parser.add_argument("--search", "-s", help="searches for customer profile", nargs="+")
+    parser.add_argument("--search", "-s",
+                        help="searches for customer profile\n"
+                             "pass arguments as: column, query", nargs="+")
     parser.add_argument("--create", "-c",
                         help="creates a new customer profile\n"
                              "pass arguments as: first name, last name, email, address", nargs="+")
