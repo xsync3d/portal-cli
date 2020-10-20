@@ -20,6 +20,9 @@ If you choose not to use [git](https://github.com/git/git/blob/master/INSTALL) t
 
 3. Now you can run the program by typing `portal.py (arguments)`
 or if you're on linux you can run the program by using `./portal.py (arguments)`.
+## Usage
+
+You can use the `-h, --help` arguments to see a list of arguments and their usages
 
 ## Contributing
 You are free to contribute to, redistribute, modify and clone this project, please take a look at [LICENSE.md](https://github.com/xsync3d/xsync3d/blob/master/LICENSE.md) for more information.
