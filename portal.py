@@ -2,18 +2,14 @@
 import sqlite3
 from argparse import ArgumentParser, RawDescriptionHelpFormatter, RawTextHelpFormatter
 
-# Just an experimental program
-
 # Connects to database and creates cursor
 conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
 
 
-# Everything below this line is bad terrible dumb code
-
 # TODO: create a database interface class and implement "delete column" and "replace row" functions
 
-def query_yes_no(question="Are you sure you want to save these changes?"):
+def query_yes_no(question: str = "Are you sure you want to save these changes?") -> bool:
     reply = input(question + " Y/N : ").lower().strip()
     if reply[:1] == "y":
         conn.commit()
@@ -27,7 +23,7 @@ def query_yes_no(question="Are you sure you want to save these changes?"):
 
 
 # TODO: further test this function to see if it actually works
-def search_customer(column, query):
+def search_customer(column: str, query: str) -> tuple:
     # possibly better way to do this https://www.techonthenet.com/mysql/and_or.php?
     query = str(query)
     print(f"searching {query} by {column}")
@@ -55,7 +51,7 @@ def search_customer(column, query):
             return result
 
 
-def create_customer(*args):
+def create_customer(*args: tuple):
     f_name = args[0]
     l_name = args[1]
     email = args[2]
@@ -68,7 +64,7 @@ def create_customer(*args):
         print(f"Could not create customer: {e}")
 
 
-def delete_customer(column, query):
+def delete_customer(column: str, query: str):
     exists = search_customer(column, query)
     if exists:
         try:
@@ -111,13 +107,6 @@ def main():
         delete_customer(args.delete[0], args.delete[1])
     if args.pac:
         print_all_customers()
-    #  print(cursor.fetchall())
-    # This is for debugging purposes
-
-
-# cursor.execute("SELECT * FROM customers")
-
-# print(cursor.fetchall())
 
 
 if __name__ == "__main__":
