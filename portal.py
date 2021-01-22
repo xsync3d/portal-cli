@@ -9,7 +9,7 @@ cursor = conn.cursor()
 
 # TODO: create a database interface class and implement "delete column" and "replace row" functions
 
-def query_yes_no(question: str = "Are you sure you want to save these changes?") -> bool:
+def query_user(question: str = "Are you sure you want to save these changes?") -> bool:
     reply = input(question + " Y/N : ").lower().strip()
     if reply[:1] == "y":
         conn.commit()
@@ -19,7 +19,7 @@ def query_yes_no(question: str = "Are you sure you want to save these changes?")
         return False
     else:
         print("Invalid input...")
-        query_yes_no(question)
+        query_user(question)
 
 
 # TODO: further test this function to see if it actually works
@@ -69,7 +69,7 @@ def delete_customer(column: str, query: str):
     if exists:
         try:
             cursor.execute("DELETE FROM customers WHERE customer_id = ?", str(exists[0]))
-            query_yes_no()
+            query_user()
         except Exception as e:
             print(f"Could not delete customer: {e}")
     else:
